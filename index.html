@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tuner Pal — Prototype (Charts)</title>
+  <title>Tuner Pal — Prototype (Charts + AI Chat)</title>
   <style>
     :root{
       --bg:#0e0f13; --card:#14161d; --card2:#1a1d27; --border:#23273a; --border2:#2d3247;
@@ -56,6 +56,7 @@
       font-weight:900;cursor:pointer
     }
     .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border2)}
+    .btn.purple{background:rgba(155,109,255,.20);color:#fff;border:1px solid rgba(155,109,255,.35)}
     .muted{color:var(--text2)}
     .mono{font-family:var(--mono)}
     .notice{font-size:12px;color:var(--text2);line-height:1.6}
@@ -74,6 +75,7 @@
     .pill.y{background:rgba(255,198,74,.12);color:var(--yellow);border-color:rgba(255,198,74,.2)}
     .pill.r{background:rgba(255,77,77,.12);color:var(--red);border-color:rgba(255,77,77,.2)}
     .pill.b{background:rgba(77,159,255,.12);color:var(--blue);border-color:rgba(77,159,255,.2)}
+    .pill.p{background:rgba(155,109,255,.12);color:var(--purple);border-color:rgba(155,109,255,.22)}
 
     .issues{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     .issue{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px}
@@ -104,7 +106,47 @@
       border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900
     }
 
-    /* Modal inputs */
+    /* AI Chat panel */
+    .chatWrap{
+      border:1px solid rgba(155,109,255,.25);
+      background:linear-gradient(180deg, rgba(155,109,255,.10), rgba(20,22,29,.0));
+      border-radius:16px;
+      padding:12px;
+    }
+    .chatHeader{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .chatHeader .title{font-weight:900;color:#fff}
+    .chatHeader .sub{font-size:11px;color:var(--text2)}
+    .chatWindow{
+      margin-top:10px;
+      height:300px;
+      overflow:auto;
+      background:rgba(20,22,29,.55);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:12px;
+      padding:10px;
+    }
+    .msg{display:flex;gap:8px;margin-bottom:10px}
+    .bubble{
+      max-width:92%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(26,29,39,.8);
+      color:var(--text);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .msg.user{justify-content:flex-end}
+    .msg.user .bubble{
+      background:rgba(0,212,170,.12);
+      border-color:rgba(0,212,170,.20);
+      color:#eafff8;
+    }
+    .msg.ai .bubble{
+      background:rgba(155,109,255,.10);
+      border-color:rgba(155,109,255,.22);
+    }
+    .chatInputRow{display:flex;gap:8px;margin-top:10px}
     .input{
       width:100%;
       background:var(--card2);
@@ -116,6 +158,21 @@
       font-size:13px;
     }
     .input:focus{border-color:var(--teal)}
+    .suggestRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .suggest{
+      border:1px solid rgba(155,109,255,.25);
+      background:rgba(155,109,255,.10);
+      color:#fff;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+      font-weight:900;
+    }
+
+    /* Modal */
+    .modalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center;padding:18px}
+    .modalCard{max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
   </style>
 </head>
 
@@ -145,18 +202,18 @@
     <!-- UPLOAD -->
     <section class="screen active" id="screen-upload">
       <div class="hero">
-        <h1>UPLOAD YOUR LOG.<br><span>GET INSIGHTS FAST.</span></h1>
-        <p>Upload a datalog CSV. This prototype detects columns, generates an AI-style report, and renders simple charts normal people understand.</p>
+        <h1>UPLOAD YOUR LOG.<br><span>SEE WHAT AI WOULD SAY.</span></h1>
+        <p>This prototype shows the experience. If your log format is unsupported, it will still show demo visuals so you can feel the product.</p>
       </div>
 
       <div class="card">
         <div id="drop" class="drop">
           <div style="font-size:40px;margin-bottom:10px">📂</div>
           <div style="font-weight:900;color:#fff;font-size:18px;margin-bottom:6px">DROP YOUR DATALOG</div>
-          <div class="muted" style="margin-bottom:14px">Drag & drop a CSV here, or click to browse</div>
+          <div class="muted" style="margin-bottom:14px">Drag & drop a CSV/TSV here, or click to browse</div>
           <button class="btn" id="chooseBtn">Choose File</button>
           <div class="mono" style="margin-top:12px;font-size:11px;color:var(--text3)">
-            Works best with RPM + (Boost/MAP or Throttle) + (AFR/Lambda) + (Knock/KR) + (Timing)
+            Best: RPM + Boost/MAP + AFR/Lambda + Knock + Timing
           </div>
           <input id="file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" />
         </div>
@@ -164,7 +221,7 @@
 
       <div class="card" style="margin-top:14px">
         <div style="font-weight:900;color:#fff;margin-bottom:8px">Quick Demo</div>
-        <div class="notice">No log handy? Load a built-in sample log and explore charts + downloads.</div>
+        <div class="notice">No log handy? Load sample data and explore the full experience.</div>
         <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn" id="loadSample">Load Sample Log</button>
           <button class="btn ghost" id="clearHistory">Clear Saved History</button>
@@ -179,10 +236,13 @@
           <div>
             <div class="mono" style="color:var(--teal);font-weight:900" id="fileName">—</div>
             <div class="muted" style="font-size:12px;margin-top:3px" id="fileMeta">—</div>
+            <div id="protoMode" class="notice" style="margin-top:6px;display:none">
+              <span class="pill p">Prototype Mode</span> Using demo visualization data (MVP will parse your exact platform logs).
+            </div>
           </div>
           <div class="rightActions">
             <button class="btn ghost" id="newLog">⬅ New Log</button>
-            <button class="btn ghost" id="downloadCsv">⬇ Download Uploaded File</button>
+            <button class="btn ghost" id="downloadFile">⬇ Download Uploaded File</button>
             <button class="btn" id="exportJson">⬇ Export JSON Report</button>
           </div>
         </div>
@@ -257,7 +317,7 @@
           <div class="issues" id="issues"></div>
 
           <div class="notice" style="margin-top:12px">
-            Note: This prototype uses heuristics. In MVP, AI generates structured findings using your car profile + full log context.
+            Prototype note: findings are simulated to show experience. MVP will use real AI + real platform parsing.
           </div>
         </div>
 
@@ -273,19 +333,33 @@
 
           <div style="height:12px"></div>
 
-          <div style="font-weight:900;color:#fff;margin-bottom:8px">Why your log might fail</div>
-          <div class="notice">
-            • Delimiter not comma (TSV / semicolon)<br>
-            • RPM column named oddly<br>
-            • Header row not first line<br>
-            • Log too short (few rows)
-          </div>
+          <!-- AI CHAT (this is your purple-highlight area) -->
+          <div class="chatWrap">
+            <div class="chatHeader">
+              <div>
+                <div class="title">AI Chat</div>
+                <div class="sub">Ask questions about your tune (prototype)</div>
+              </div>
+              <span class="pill p">Chat</span>
+            </div>
 
-          <div style="height:12px"></div>
+            <div class="suggestRow" id="suggestRow">
+              <button class="suggest" data-q="Do I have knock? Where and why?">Knock?</button>
+              <button class="suggest" data-q="Is my AFR/Lambda safe under boost?">AFR safe?</button>
+              <button class="suggest" data-q="What should I change first to improve safety?">What to change?</button>
+              <button class="suggest" data-q="Can you summarize my tune in plain English?">Summarize</button>
+            </div>
 
-          <div style="font-weight:900;color:#fff;margin-bottom:8px">What to upload</div>
-          <div class="notice">
-            Export from your tool as CSV if possible (MHD, BM3, HP Tuners, COBB). Longer pulls = better charts.
+            <div class="chatWindow" id="chatWindow"></div>
+
+            <div class="chatInputRow">
+              <input class="input" id="chatInput" placeholder="Ask: 'Why did timing drop at high RPM?'" />
+              <button class="btn purple" id="chatSend">Send</button>
+            </div>
+
+            <div class="notice" style="margin-top:10px">
+              In MVP, this chat will reference your full log + platform-specific channels.
+            </div>
           </div>
         </div>
       </div>
@@ -314,8 +388,8 @@
   </div>
 
   <!-- Car Modal -->
-  <div id="carModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center;padding:18px">
-    <div style="max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px">
+  <div class="modalBg" id="carModal">
+    <div class="modalCard">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
         <div style="font-weight:900;color:#fff;font-size:16px">Edit Car Profile</div>
         <button class="btn ghost" id="closeCarModal">✕</button>
@@ -367,7 +441,7 @@
   tabs.forEach(t => t.addEventListener("click", () => {
     const tab = t.dataset.tab;
     if (tab === "results" && !currentSeries){
-      alert("Upload a CSV log first to generate charts.");
+      alert("Upload a log (or load sample) to view charts.");
       go("upload");
       return;
     }
@@ -375,7 +449,7 @@
   }));
 
   // ---------------- Car Profile ----------------
-  const CAR_KEY = "tunerpal_car_v2";
+  const CAR_KEY = "tunerpal_car_proto_v1";
   const defaultCar = { make: "BMW", model: "M3", stage: "Stage 2", fuel: "E50" };
   function loadCar(){ try { return JSON.parse(localStorage.getItem(CAR_KEY)) || defaultCar; } catch { return defaultCar; } }
   function saveCar(c){ localStorage.setItem(CAR_KEY, JSON.stringify(c)); renderCarChip(); }
@@ -412,8 +486,12 @@
   // ---------------- Upload ----------------
   const drop = document.getElementById("drop");
   const fileInput = document.getElementById("file");
-  document.getElementById("chooseBtn").onclick = (e)=>{ e.preventDefault(); fileInput.click(); };
-  drop.addEventListener("click", ()=>fileInput.click());
+  document.getElementById("chooseBtn").onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); fileInput.click(); };
+  drop.addEventListener("click", ()=>{
+    // Only open file picker if upload screen is active
+    if (!document.getElementById("screen-upload").classList.contains("active")) return;
+    fileInput.click();
+  });
   drop.addEventListener("dragover", (e)=>{ e.preventDefault(); drop.style.borderColor = "var(--teal)"; });
   drop.addEventListener("dragleave", ()=>{ drop.style.borderColor = "var(--border2)"; });
   drop.addEventListener("drop", (e)=>{
@@ -424,15 +502,16 @@
   fileInput.addEventListener("change", ()=>{
     const f = fileInput.files?.[0];
     if (f) handleFile(f);
+    // reset so same file can be chosen again without weird behavior
+    fileInput.value = "";
   });
 
   document.getElementById("newLog").onclick = ()=>{
     go("upload");
-    fileInput.value = "";
   };
 
   // ---------------- History ----------------
-  const HISTORY_KEY = "tunerpal_history_v3";
+  const HISTORY_KEY = "tunerpal_history_proto_v1";
   function loadHistory(){ try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; } }
   function saveHistory(entry){
     const h = loadHistory();
@@ -469,11 +548,17 @@
       btn.onclick = ()=>{
         const idx = Number(btn.dataset.open);
         const entry = loadHistory()[idx];
+
         lastUploadedFileName = entry.fileName;
         lastUploadedText = entry.rawText || null;
         currentReport = entry.report;
         currentSeries = entry.series;
-        hydrateResults(entry.fileName, entry.meta, entry.report, entry.previewTable, entry.detected, entry.series);
+        currentDetected = entry.detected;
+        currentMeta = entry.meta;
+        prototypeVisualizationMode = !!entry.protoMode;
+
+        hydrateResults(entry.fileName, entry.meta, entry.report, entry.previewTable, entry.detected, entry.series, prototypeVisualizationMode);
+        loadChatFromState();
         go("results");
       };
     });
@@ -489,7 +574,10 @@
   // ---------------- Downloads ----------------
   let lastUploadedFileName = null;
   let lastUploadedText = null;
-  document.getElementById("downloadCsv").onclick = ()=>{
+
+  document.getElementById("downloadFile").onclick = (e)=>{
+    e.preventDefault();
+    e.stopPropagation(); // prevent any upload click handlers
     if (!lastUploadedText){
       alert("No uploaded file available yet (upload a log first).");
       return;
@@ -502,7 +590,9 @@
     URL.revokeObjectURL(a.href);
   };
 
-  document.getElementById("exportJson").onclick = ()=>{
+  document.getElementById("exportJson").onclick = (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
     if (!currentReport) return alert("No report yet.");
     downloadJSON(currentReport, (lastUploadedFileName || "tunerpal").replace(/\.(csv|tsv)$/i,"") + "_report.json");
   };
@@ -518,8 +608,10 @@
 
   // ---------------- Sample Log ----------------
   document.getElementById("loadSample").onclick = ()=>{
-    const csv = makeSampleDelimited(",", "SAMPLE_LOG.csv");
-    analyzeText(csv.text, csv.name, true);
+    const sample = makeSampleDelimited(",", "SAMPLE_LOG.csv");
+    lastUploadedFileName = sample.name;
+    lastUploadedText = sample.text;
+    analyzeText(sample.text, sample.name, true);
   };
 
   // ---------------- Core File Handling ----------------
@@ -531,7 +623,7 @@
     analyzeText(text, name, false);
   }
 
-  // --------------- Delimiter auto-detect + CSV/TSV parse ---------------
+  // --------------- Delimiter auto-detect + parse ---------------
   function detectDelimiter(headerLine){
     const candidates = [",", "\t", ";", "|"];
     const scores = candidates.map(d => ({ d, count: (headerLine.split(d).length-1) }));
@@ -543,9 +635,10 @@
     const lines = text.replace(/\r/g,"").split("\n").filter(l => l.trim().length);
     if (!lines.length) return { headers: [], rows: [], delimiter: "," };
 
-    // Try to find a header line: choose first line with multiple delimiters
+    // naive: treat first non-empty line as header
     const delim = detectDelimiter(lines[0]);
     const headers = splitLine(lines[0], delim).map(h=>h.trim()).filter(Boolean);
+
     const rows = [];
     for (let i=1; i<lines.length; i++){
       const cols = splitLine(lines[i], delim);
@@ -558,7 +651,6 @@
   }
 
   function splitLine(line, delim){
-    // If delimiter is tab/semicolon/pipe, treat quotes simply; for comma: handle quotes
     if (delim !== ",") return line.split(delim);
     const out = [];
     let cur = "", inQ = false;
@@ -575,6 +667,13 @@
     return out;
   }
 
+  function normalizeHeader(h){
+    return String(h||"").toLowerCase()
+      .replace(/[%°]/g,"")
+      .replace(/[\s\-\(\)\[\]\/]+/g,"")
+      .trim();
+  }
+
   function detectColumns(headers){
     const norm = headers.map(h=>normalizeHeader(h));
     const find = (patterns)=>{
@@ -587,19 +686,15 @@
       return null;
     };
     return {
-      rpm: find(["rpm","enginespeed","engine_speed","engine speed","n","motor speed"]),
+      rpm: find(["rpm","enginespeed","engine_speed","enginerpm","motor speed","n"]),
       time: find(["time","seconds","sec","timestamp","logtime","t"]),
-      boost: find(["boost","map","manifoldpressure","manifold pressure","boostpsi","psi","kpa","pressure"]),
-      afr: find(["afr","airfuel","air fuel","lambda","equivalence ratio"]),
-      knock: find(["knock","kr","knockretard","knock retard","correction","timingcorrection"]),
+      boost: find(["boost","map","manifoldpressure","boostpsi","psi","kpa","pressure"]),
+      afr: find(["afr","airfuel","air fuel","lambda","equivalenceratio"]),
+      knock: find(["knock","kr","knockretard","correction","timingcorrection"]),
       timing: find(["timing","spark","ignition","ignitiontiming","sparkadvance","advance"]),
-      iat: find(["iat","intakeair","intake air","intaketemp","chargeairtemp","cat"]),
-      throttle: find(["throttle","tps","throttleposition","throttle position"]),
+      iat: find(["iat","intakeair","intaketemp","chargeairtemp","cat"]),
+      throttle: find(["throttle","tps","throttleposition"]),
     };
-  }
-
-  function normalizeHeader(h){
-    return String(h||"").toLowerCase().replace(/[%°]/g,"").replace(/[\s\-\(\)\[\]\/]+/g,"").trim();
   }
 
   function toNum(v){
@@ -625,22 +720,29 @@
     }).filter(x => Number.isFinite(x.rpm) || Number.isFinite(x.time));
   }
 
-  function estimateDurationSeconds(norm){
-    const times = norm.map(r=>r.time).filter(Number.isFinite);
-    if (!times.length) return null;
-    return Math.max(...times) - Math.min(...times);
-  }
-
   // ---------------- Simple SVG charting ----------------
   function sparkChart(series, color){
-    const v = series.filter(Number.isFinite);
+    const v = series;
     const w = 520, h = 140, p = 10;
-    if (v.length < 2) return `<div class="notice">Not enough data</div>`;
-    const min = Math.min(...v), max = Math.max(...v);
+    const finite = v.filter(Number.isFinite);
+    if (finite.length < 2) return `<div class="notice">Not enough data</div>`;
+    const min = Math.min(...finite), max = Math.max(...finite);
     const sx = (i)=> p + (i*(w-2*p))/((v.length-1)||1);
-    const sy = (x)=> max===min ? h/2 : p + (h-2*p)*(1-(x-min)/(max-min));
+    const sy = (x)=>{
+      if (!Number.isFinite(x)) return null;
+      return max===min ? h/2 : p + (h-2*p)*(1-(x-min)/(max-min));
+    };
     let d = "";
-    v.forEach((x,i)=> d += (i===0?"M":"L")+`${sx(i)},${sy(x)} `);
+    let started = false;
+    for (let i=0;i<v.length;i++){
+      const y = sy(v[i]);
+      if (y === null){
+        started = false;
+        continue;
+      }
+      d += (started ? "L" : "M") + `${sx(i)},${y} `;
+      started = true;
+    }
     return `
       <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="display:block">
         <path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>
@@ -650,20 +752,31 @@
   }
 
   function sparkWithEvents(series, threshold){
-    const v = series.filter(Number.isFinite);
+    const v = series;
     const w = 520, h = 140, p = 10;
-    if (v.length < 2) return `<div class="notice">Not enough data</div>`;
-    const min = 0, max = Math.max(3, Math.max(...v));
+    const finite = v.filter(Number.isFinite);
+    if (finite.length < 2) return `<div class="notice">Not enough data</div>`;
+    const min = 0, max = Math.max(3, Math.max(...finite));
     const sx = (i)=> p + (i*(w-2*p))/((v.length-1)||1);
-    const sy = (x)=> p + (h-2*p)*(1-(x-min)/(max-min));
+    const sy = (x)=>{
+      if (!Number.isFinite(x)) return null;
+      return p + (h-2*p)*(1-(x-min)/(max-min));
+    };
     let d = "";
+    let started = false;
     const dots = [];
-    v.forEach((x,i)=>{
-      d += (i===0?"M":"L")+`${sx(i)},${sy(x)} `;
-      if (x >= threshold){
-        dots.push(`<circle cx="${sx(i)}" cy="${sy(x)}" r="3.5" fill="var(--red)" />`);
+    for (let i=0;i<v.length;i++){
+      const y = sy(v[i]);
+      if (y === null){
+        started = false;
+        continue;
       }
-    });
+      d += (started ? "L" : "M") + `${sx(i)},${y} `;
+      started = true;
+      if (v[i] >= threshold){
+        dots.push(`<circle cx="${sx(i)}" cy="${y}" r="3.5" fill="var(--red)" />`);
+      }
+    }
     return `
       <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="display:block">
         <path d="${d}" fill="none" stroke="var(--yellow)" stroke-width="2.4" stroke-linecap="round"/>
@@ -673,7 +786,7 @@
     `;
   }
 
-  // ---------------- Report Engine ----------------
+  // ---------------- Report Engine (prototype heuristics) ----------------
   function generateReport(norm, detected){
     const issues = [];
     let score = 100;
@@ -683,7 +796,7 @@
       score -= 18;
       issues.push({ severity:"high", title:`Knock events detected (${knockEvents})`,
         body:`Multiple knock/retard events detected. Address before hard pulls.`,
-        fix:`Reduce timing in the affected RPM/load region, verify fuel quality, check plugs/heat range, and confirm AFR under load.`
+        fix:`Pull timing in the affected region, verify fuel quality, check plugs/heat range, confirm AFR under load.`
       });
     } else if (knockEvents >= 1){
       score -= 8;
@@ -701,8 +814,7 @@
 
       if (isLambda){
         const lean = afrVals.filter(v=>v > 1.08).length;
-        const rich = afrVals.filter(v=>v < 0.78).length;
-        afrFlags = lean + rich;
+        afrFlags = lean;
         if (lean > 20){
           score -= 14;
           issues.push({ severity:"high", title:`Lean lambda trend`,
@@ -750,7 +862,7 @@
     const tier = score >= 85 ? "green" : score >= 70 ? "yellow" : "red";
 
     return {
-      version:"prototype-charts-v1",
+      version:"prototype-chat-v1",
       createdAt:new Date().toISOString(),
       carProfile: loadCar(),
       score, tier,
@@ -762,54 +874,59 @@
   // ---------------- App State ----------------
   let currentReport = null;
   let currentSeries = null;
+  let currentDetected = null;
+  let currentMeta = null;
+  let prototypeVisualizationMode = false;
 
   function analyzeText(text, fileName, isSample){
-    const parsed = parseDelimited(text);
-    if (!parsed.headers.length || parsed.rows.length < 10){
-      alert("Could not parse your file. Make sure the first row is headers and there are enough rows.");
-      return;
-    }
+    prototypeVisualizationMode = false;
 
+    const parsed = parseDelimited(text);
     const detected = detectColumns(parsed.headers);
     const norm = normalizeRows(parsed.rows, detected);
 
-    // Previously you saw "not enough rpm rows" because RPM wasn't being detected.
-    // Now we allow charting using Time if RPM is missing, BUT RPM is still preferred.
+    // Build chart series: use RPM if present, else TIME
     const rpmCount = norm.filter(r=>Number.isFinite(r.rpm)).length;
     const timeCount = norm.filter(r=>Number.isFinite(r.time)).length;
+    const xSource = rpmCount >= 20 ? "rpm" : (timeCount >= 20 ? "time" : null);
 
-    if (rpmCount < 10 && timeCount < 10){
-      alert("We couldn't find enough RPM or Time rows. This log may have different column names or delimiter.");
+    // If parsing isn't strong enough (prototype), fallback to demo visuals but keep user file downloadable
+    if (!xSource || norm.length < 50){
+      const sample = makeSampleDelimited(",", "DEMO_VISUALS.csv");
+      const demoParsed = parseDelimited(sample.text);
+      const demoDetected = detectColumns(demoParsed.headers);
+      const demoNorm = normalizeRows(demoParsed.rows, demoDetected);
+
+      prototypeVisualizationMode = true;
+
+      // Keep user filename but show demo visuals
+      buildAndRender(demoNorm, demoDetected, fileName, parsed.delimiter, true);
       return;
     }
 
-    // Build series:
-    const xSource = rpmCount >= 10 ? "rpm" : "time";
-    const normSorted = norm
+    buildAndRender(norm, detected, fileName, parsed.delimiter, false);
+  }
+
+  function buildAndRender(norm, detected, fileName, delimiter, protoMode){
+    const xSource = norm.filter(r=>Number.isFinite(r.rpm)).length >= 20 ? "rpm" : "time";
+    const sorted = norm
       .filter(r => Number.isFinite(r[xSource]))
       .sort((a,b)=>a[xSource]-b[xSource]);
 
     const series = {
       xSource,
-      x: normSorted.map(r=>r[xSource]),
-      boostOrThrottle: pickSeries(normSorted, detected.boost ? "boost" : "throttle"),
-      afr: normSorted.map(r=>r.afr).filterKeepAligned(normSorted, "afr"),
-      knock: normSorted.map(r=>r.knock).filterKeepAligned(normSorted, "knock"),
-      timing: normSorted.map(r=>r.timing).filterKeepAligned(normSorted, "timing"),
-      detected
+      x: sorted.map(r=>r[xSource]),
+      boostOrThrottle: sorted.map(r => Number.isFinite(r.boost) ? r.boost : (Number.isFinite(r.throttle) ? r.throttle : NaN)),
+      afr: sorted.map(r => Number.isFinite(r.afr) ? r.afr : NaN),
+      knock: sorted.map(r => Number.isFinite(r.knock) ? r.knock : NaN),
+      timing: sorted.map(r => Number.isFinite(r.timing) ? r.timing : NaN),
     };
 
-    const meta = {
-      rows: normSorted.length,
-      delimiter: parsed.delimiter,
-      xSource,
-      detected
-    };
+    const meta = { rows: sorted.length, delimiter, xSource };
+    const report = generateReport(sorted, detected);
+    const previewTable = buildPreviewTable(sorted, 20);
 
-    const report = generateReport(normSorted, detected);
-    const previewTable = buildPreviewTable(normSorted, 20);
-
-    // Save history (store raw text so download works from history)
+    // Save history (store raw text if available, and whether we used demo visuals)
     saveHistory({
       fileName,
       createdAt: Date.now(),
@@ -818,27 +935,18 @@
       report,
       previewTable,
       series,
-      rawText: text
+      rawText: lastUploadedText || null,
+      protoMode: protoMode
     });
 
-    lastUploadedFileName = fileName;
-    lastUploadedText = text;
     currentReport = report;
     currentSeries = series;
+    currentDetected = detected;
+    currentMeta = meta;
 
-    hydrateResults(fileName, meta, report, previewTable, detected, series);
+    hydrateResults(fileName, meta, report, previewTable, detected, series, protoMode);
+    resetChatForNewLog();
     go("results");
-  }
-
-  // Helper: keep aligned arrays without complex mapping
-  Array.prototype.filterKeepAligned = function(normSorted, key){
-    // this is called as: normSorted.map(...).filterKeepAligned(normSorted, "afr")
-    // We'll rebuild from normSorted to ensure alignment, and fallback to NaN where missing.
-    return normSorted.map(r => Number.isFinite(r[key]) ? r[key] : NaN);
-  };
-
-  function pickSeries(rows, key){
-    return rows.map(r => Number.isFinite(r[key]) ? r[key] : NaN);
   }
 
   function buildPreviewTable(norm, n=20){
@@ -851,11 +959,12 @@
     return { cols, rows };
   }
 
-  function hydrateResults(fileName, meta, report, previewTable, detected, series){
+  function hydrateResults(fileName, meta, report, previewTable, detected, series, protoMode){
     document.getElementById("fileName").textContent = fileName;
-    const dur = estimateDurationSecondsFromSeries(series);
     document.getElementById("fileMeta").textContent =
-      `${meta.rows.toLocaleString()} rows · delimiter ${meta.delimiter === "\t" ? "TSV" : meta.delimiter} · X axis ${meta.xSource.toUpperCase()} · duration ${dur}`;
+      `${meta.rows.toLocaleString()} rows · delimiter ${meta.delimiter === "\t" ? "TSV" : meta.delimiter} · X axis ${meta.xSource.toUpperCase()}`;
+
+    document.getElementById("protoMode").style.display = protoMode ? "block" : "none";
 
     document.getElementById("score").textContent = report.score;
     document.getElementById("knockCount").textContent = report.summary.knockEvents ?? "—";
@@ -866,7 +975,7 @@
     pill.className = "pill " + (report.tier === "green" ? "g" : report.tier === "red" ? "r" : "y");
     pill.textContent = report.tier === "green" ? "✅ GOOD" : report.tier === "red" ? "🛑 NEEDS ATTENTION" : "⚠️ GOOD WITH ISSUES";
 
-    // Detected columns
+    // Detected columns display
     const lines = [];
     const missing = [];
     const keys = ["rpm","time","boost","throttle","afr","knock","timing","iat"];
@@ -899,41 +1008,26 @@
       issuesEl.appendChild(div);
     });
 
-    // Charts (use NaN-safe series)
-    const boostSeries = series.boostOrThrottle.filter(Number.isFinite);
-    const afrSeries = series.afr.filter(Number.isFinite);
-    const knockSeries = series.knock.filter(Number.isFinite);
-    const timingSeries = series.timing.filter(Number.isFinite);
+    // Charts
+    document.getElementById("boostChart").innerHTML = sparkChart(series.boostOrThrottle, "var(--blue)");
+    document.getElementById("afrChart").innerHTML = sparkChart(series.afr, "var(--teal)");
+    document.getElementById("knockChart").innerHTML = sparkWithEvents(series.knock, 2.0);
+    document.getElementById("timingChart").innerHTML = sparkChart(series.timing, "var(--yellow)");
 
-    document.getElementById("boostChart").innerHTML =
-      sparkChart(series.boostOrThrottle, "var(--blue)");
-    document.getElementById("afrChart").innerHTML =
-      sparkChart(series.afr, "var(--teal)");
-    document.getElementById("knockChart").innerHTML =
-      sparkWithEvents(series.knock, 2.0);
-    document.getElementById("timingChart").innerHTML =
-      sparkChart(series.timing, "var(--yellow)");
+    const boostFinite = series.boostOrThrottle.filter(Number.isFinite);
+    const afrFinite = series.afr.filter(Number.isFinite);
+    const timingFinite = series.timing.filter(Number.isFinite);
 
     document.getElementById("boostStat").textContent =
-      boostSeries.length ? `max ${Math.max(...boostSeries).toFixed(1)}` : "—";
+      boostFinite.length ? `max ${Math.max(...boostFinite).toFixed(1)}` : "—";
     document.getElementById("afrStat").textContent =
-      afrSeries.length ? `avg ${(afrSeries.reduce((a,b)=>a+b,0)/afrSeries.length).toFixed(2)}` : "—";
+      afrFinite.length ? `avg ${(afrFinite.reduce((a,b)=>a+b,0)/afrFinite.length).toFixed(2)}` : "—";
     document.getElementById("knockStat").textContent =
       `events ${report.summary.knockEvents ?? 0}`;
     document.getElementById("timingStat").textContent =
-      timingSeries.length ? `range ${Math.min(...timingSeries).toFixed(1)}–${Math.max(...timingSeries).toFixed(1)}` : "—";
+      timingFinite.length ? `range ${Math.min(...timingFinite).toFixed(1)}–${Math.max(...timingFinite).toFixed(1)}` : "—";
 
-    // Table
     renderTable(previewTable);
-  }
-
-  function estimateDurationSecondsFromSeries(series){
-    if (series.xSource === "time"){
-      const xs = series.x.filter(Number.isFinite);
-      if (!xs.length) return "—";
-      return `${Math.round(Math.max(...xs)-Math.min(...xs))}s`;
-    }
-    return "—";
   }
 
   function renderTable(preview){
@@ -959,6 +1053,128 @@
       tbody.appendChild(tr);
     });
   }
+
+  // ---------------- AI Chat (prototype) ----------------
+  const CHAT_KEY = "tunerpal_chat_state_v1";
+  const chatWindow = document.getElementById("chatWindow");
+  const chatInput = document.getElementById("chatInput");
+  const chatSend = document.getElementById("chatSend");
+
+  function chatAppend(role, text){
+    const row = document.createElement("div");
+    row.className = "msg " + (role === "user" ? "user" : "ai");
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.innerHTML = escapeHtml(text).replace(/\n/g,"<br/>");
+    row.appendChild(b);
+    chatWindow.appendChild(row);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  function getChatState(){
+    try { return JSON.parse(localStorage.getItem(CHAT_KEY) || "[]"); } catch { return []; }
+  }
+  function setChatState(arr){
+    localStorage.setItem(CHAT_KEY, JSON.stringify(arr.slice(-40)));
+  }
+  function loadChatFromState(){
+    chatWindow.innerHTML = "";
+    const st = getChatState();
+    if (!st.length){
+      // seed message
+      const seed = defaultChatSeed();
+      setChatState(seed);
+    }
+    getChatState().forEach(m => chatAppend(m.role, m.text));
+  }
+
+  function defaultChatSeed(){
+    const c = loadCar();
+    return [{
+      role:"ai",
+      text:`I’m Tuner Pal AI (prototype). Ask me anything about your tune.\n\nCar: ${c.make} ${c.model} · ${c.stage} · ${c.fuel}\nTip: try “Do I have knock?” or “What should I change first?”`
+    }];
+  }
+
+  function resetChatForNewLog(){
+    const seed = defaultChatSeed();
+    setChatState(seed);
+    loadChatFromState();
+  }
+
+  function aiReply(userText){
+    // Prototype response logic using currentReport + car profile
+    const c = loadCar();
+    const r = currentReport;
+    const s = r?.summary || {};
+    const knock = s.knockEvents ?? 0;
+    const afrFlags = s.afrFlags ?? 0;
+    const boostFlags = s.boostFlags ?? 0;
+
+    const base = `Car: ${c.make} ${c.model} · ${c.stage} · ${c.fuel}\nHealth score: ${r?.score ?? "—"}\n`;
+
+    const t = userText.toLowerCase();
+
+    if (t.includes("knock")){
+      if (knock >= 3) return base + `I see multiple knock events in this session.\n\nLikely causes:\n• borderline timing\n• fuel quality/ethanol content mismatch\n• plugs/coil issues\n\nSuggested first action:\n1) pull 1–2° timing in the affected region\n2) verify fuel / ethanol content\n3) check plugs (gap + heat range)\n\n(Prototype note: MVP will pinpoint RPM/load windows.)`;
+      if (knock >= 1) return base + `I see minor knock activity.\n\nIf it repeats on multiple pulls, pull a small amount of timing and retest. If it’s random, it may be noise.`;
+      return base + `No major knock events detected in the current report.\n\nIf you want higher confidence, log in the same gear/conditions and compare 3 runs.`;
+    }
+
+    if (t.includes("afr") || t.includes("lambda")){
+      if (afrFlags > 20) return base + `AFR/Lambda shows a lean trend in parts of the log (prototype detection).\n\nFirst checks:\n• fuel pressure\n• injector duty\n• commanded lambda / WOT targets\n• sensor calibration\n\nIf this is WOT, don’t keep doing pulls until confirmed safe.`;
+      if (afrFlags > 5) return base + `AFR/Lambda shows some spikes.\n\nOften transient fueling or sensor noise. Re-log a clean pull and see if it repeats in the same window.`;
+      return base + `AFR/Lambda looks stable based on detected channels.\n\nFor MVP, we’ll also check commanded vs actual and fuel trims.`;
+    }
+
+    if (t.includes("change") || t.includes("fix") || t.includes("first")){
+      const items = [];
+      if (knock >= 1) items.push("Reduce timing slightly in the region where knock occurs");
+      if (afrFlags > 10) items.push("Verify fueling (pressure, injector headroom, commanded targets)");
+      if (boostFlags >= 1) items.push("Stabilize boost control (targets/WGDC/leaks)");
+      if (!items.length) items.push("Run 2–3 repeatable pulls and compare for consistency");
+      return base + `Top priority actions:\n• ${items.join("\n• ")}\n\nIf you want, ask: “What would a safe next log include?”`;
+    }
+
+    if (t.includes("summarize") || t.includes("summary")){
+      return base + `Plain English summary:\n• The tune looks ${r?.tier === "green" ? "stable" : r?.tier === "red" ? "risky right now" : "mostly OK but with issues"}.\n• Knock events: ${knock}\n• AFR/Lambda flags: ${afrFlags}\n• Boost instability flags: ${boostFlags}\n\nAsk: “What should I log next?”`;
+    }
+
+    if (t.includes("log next") || t.includes("next log")){
+      return base + `For a stronger diagnosis, add:\n• fuel pressure\n• fuel trims\n• commanded lambda\n• load\n• WGDC / boost target\n\nMVP will suggest channels based on your platform (MHD/BM3/HP Tuners).`;
+    }
+
+    return base + `I can help with:\n• knock\n• AFR/Lambda safety\n• timing drops\n• what to change first\n\nTry asking: “Do I have knock? Where and why?”`;
+  }
+
+  function sendChat(text){
+    const msg = text.trim();
+    if (!msg) return;
+
+    const st = getChatState();
+    st.push({role:"user", text: msg});
+    setChatState(st);
+    chatAppend("user", msg);
+
+    const reply = aiReply(msg);
+    const st2 = getChatState();
+    st2.push({role:"ai", text: reply});
+    setChatState(st2);
+    chatAppend("ai", reply);
+  }
+
+  chatSend.onclick = ()=> sendChat(chatInput.value), chatInput.value = "";
+  chatInput.addEventListener("keydown", (e)=>{
+    if (e.key === "Enter"){
+      sendChat(chatInput.value);
+      chatInput.value = "";
+    }
+  });
+  document.getElementById("suggestRow").addEventListener("click", (e)=>{
+    const btn = e.target.closest("button[data-q]");
+    if (!btn) return;
+    sendChat(btn.dataset.q);
+  });
 
   // ---------------- Utilities ----------------
   function escapeHtml(s){
@@ -989,6 +1205,10 @@
     }
     return { name, text: [headers.join(delim), ...rows].join("\n") };
   }
+
+  // ---------------- Init ----------------
+  // Load chat on first load
+  loadChatFromState();
 </script>
 </body>
 </html>
