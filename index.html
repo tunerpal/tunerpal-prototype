@@ -159,7 +159,7 @@
 
     <div class="tabs">
       <button class="tab active" data-tab="upload">📂 Upload</button>
-      <button class="tab" data-tab="results" disabled title="Upload a log first">🗺️ Map</button>
+      <button class="tab" data-tab="results" title="Upload a log first">🗺️ Map</button>
       <button class="tab" data-tab="history">🗂️ My Tunes</button>
     </div>
 
@@ -383,10 +383,18 @@
     Object.keys(screens).forEach(k => screens[k].classList.toggle("active", k === tab));
     if (tab === "history") renderHistory();
   }
-  tabs.forEach(t => t.addEventListener("click", () => {
-    if (t.disabled) return;
-    go(t.dataset.tab);
-  }));
+ tabs.forEach(t => t.addEventListener("click", () => {
+  const tab = t.dataset.tab;
+
+  // If user clicks Map but hasn't uploaded anything yet, force upload screen.
+  if (tab === "results" && !currentSeries) {
+    alert("Upload a CSV log first to generate your map.");
+    go("upload");
+    return;
+  }
+
+  go(tab);
+}));
 
   function enableResultsTab(){
     const rtab = Array.from(tabs).find(t=>t.dataset.tab==="results");
@@ -992,10 +1000,16 @@
     currentDetected = detected;
     currentMeta = meta;
 
-    hydrateResults(fileName, meta, report, previewTable, detected, series);
-    enableResultsTab();
-    go("results");
-  }
+ currentReport = entry.report;
+currentSeries = entry.series;
+currentDetected = entry.detected;
+currentMeta = entry.meta;
+
+lastUploadedFileName = entry.fileName;
+lastUploadedCSVText = entry.rawCsv || null;
+
+hydrateResults(entry.fileName, entry.meta, entry.report, entry.previewTable, entry.detected, entry.series);
+go("results");
 
   function hydrateResults(fileName, meta, report, previewTable, detected, series){
     lastUploadedFileName = fileName;
