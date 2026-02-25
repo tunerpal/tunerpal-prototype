@@ -3,80 +3,171 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tuner Pal — Working Prototype</title>
+  <title>Tuner Pal — Prototype (Heatmap)</title>
   <style>
     :root{
       --bg:#0e0f13; --card:#14161d; --card2:#1a1d27; --border:#23273a; --border2:#2d3247;
-      --teal:#00d4aa; --red:#ff4d4d; --yellow:#ffc64a; --blue:#4d9fff;
-      --text:#c8cfe0; --text2:#6b7594; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --teal:#00d4aa; --red:#ff4d4d; --yellow:#ffc64a; --blue:#4d9fff; --purple:#9b6dff;
+      --text:#c8cfe0; --text2:#6b7594; --text3:#3a425f;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:60px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0}
+    nav{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:0 18px;height:60px;background:var(--card);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:20
+    }
     .logo{display:flex;align-items:center;gap:10px}
     .logo-mark{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center}
     .logo-name{font-weight:900;letter-spacing:1.5px;color:#fff}
     .tabs{display:flex;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:4px}
-    .tab{padding:7px 12px;border-radius:8px;font-size:13px;color:var(--text2);border:0;background:transparent;cursor:pointer}
+    .tab{
+      padding:7px 12px;border-radius:8px;font-size:13px;color:var(--text2);
+      border:0;background:transparent;cursor:pointer;display:flex;align-items:center;gap:6px
+    }
     .tab.active{background:var(--card2);color:#fff;border:1px solid var(--border2)}
-    .chip{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px}
+    .chip{
+      display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border2);
+      border-radius:10px;padding:8px 12px;cursor:pointer;user-select:none
+    }
     .dot{width:7px;height:7px;background:var(--teal);border-radius:50%;box-shadow:0 0 10px var(--teal)}
-    .container{max-width:1100px;margin:0 auto;padding:22px}
+    .container{max-width:1180px;margin:0 auto;padding:22px}
     .screen{display:none}
     .screen.active{display:block}
-    .hero{max-width:820px;margin:22px auto;text-align:center}
-    .hero h1{font-size:42px;line-height:1.05;color:#fff;margin-bottom:10px}
+
+    .hero{max-width:860px;margin:18px auto;text-align:center}
+    .hero h1{font-size:42px;line-height:1.05;color:#fff;margin-bottom:10px;letter-spacing:.5px}
     .hero h1 span{color:var(--teal)}
-    .hero p{color:var(--text2);line-height:1.6}
-    .row{display:grid;grid-template-columns:1.3fr .7fr;gap:14px;margin-top:18px}
-    @media (max-width:900px){.row{grid-template-columns:1fr}}
+    .hero p{color:var(--text2);line-height:1.65}
+
     .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
-    .drop{border:2px dashed var(--border2);border-radius:18px;padding:34px;text-align:center;cursor:pointer;background:var(--card);transition:.15s}
+    .row{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}
+    @media (max-width:980px){.row{grid-template-columns:1fr}}
+
+    .drop{
+      border:2px dashed var(--border2);border-radius:18px;padding:34px;text-align:center;cursor:pointer;
+      background:var(--card);transition:.15s
+    }
     .drop:hover{border-color:var(--teal);background:var(--card2)}
-    .btn{background:var(--teal);color:#000;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .btn{
+      background:var(--teal);color:#000;border:0;border-radius:10px;padding:10px 14px;
+      font-weight:900;cursor:pointer
+    }
     .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border2)}
     .muted{color:var(--text2)}
     .mono{font-family:var(--mono)}
+    .notice{font-size:12px;color:var(--text2);line-height:1.6}
+
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .rightActions{display:flex;gap:8px;flex-wrap:wrap}
+
     .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
-    @media (max-width:900px){.kpi{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:980px){.kpi{grid-template-columns:repeat(2,1fr)}}
     .k{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
-    .k .l{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);font-weight:800}
+    .k .l{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);font-weight:900}
     .k .v{margin-top:6px;font-size:22px;color:#fff;font-family:var(--mono)}
-    .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;border:1px solid transparent}
+
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:900;border:1px solid transparent}
     .pill.g{background:rgba(0,212,170,.12);color:var(--teal);border-color:rgba(0,212,170,.2)}
     .pill.y{background:rgba(255,198,74,.12);color:var(--yellow);border-color:rgba(255,198,74,.2)}
     .pill.r{background:rgba(255,77,77,.12);color:var(--red);border-color:rgba(255,77,77,.2)}
-    .issues{display:flex;flex-direction:column;gap:10px}
+    .pill.b{background:rgba(77,159,255,.12);color:var(--blue);border-color:rgba(77,159,255,.2)}
+
+    .issues{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     .issue{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px}
     .issue h4{font-size:14px;color:#fff;margin-bottom:5px}
     .issue p{font-size:13px;line-height:1.55;color:var(--text2)}
+
     table{width:100%;border-collapse:collapse;margin-top:10px;border:1px solid var(--border);border-radius:14px;overflow:hidden}
     thead th{background:var(--card2);color:var(--text2);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:10px;border-bottom:1px solid var(--border);text-align:left}
     tbody td{padding:9px;border-bottom:1px solid rgba(35,39,58,.6);font-family:var(--mono);font-size:12px;color:var(--text2)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .rightActions{display:flex;gap:8px;flex-wrap:wrap}
-    .notice{font-size:12px;color:var(--text2);line-height:1.6}
+
     .history{display:flex;flex-direction:column;gap:8px}
     .histItem{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px}
+
+    /* Heatmap */
+    .mapWrap{margin-top:14px}
+    .mapTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .seg{
+      display:flex;gap:6px;align-items:center;background:var(--bg);
+      border:1px solid var(--border);border-radius:10px;padding:4px
+    }
+    .seg button{
+      border:0;background:transparent;color:var(--text2);
+      padding:7px 10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:12px
+    }
+    .seg button.active{background:var(--card2);color:#fff;border:1px solid var(--border2)}
+    .mapCard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin-top:10px}
+    .mapGrid{
+      display:grid;
+      gap:2px;
+      background:rgba(255,255,255,.04);
+      padding:2px;border-radius:12px;
+      overflow:auto;
+    }
+    .cell{
+      width:18px;height:18px;border-radius:4px;
+      border:1px solid rgba(0,0,0,.25);
+      position:relative;cursor:default;
+    }
+    .cell:hover{outline:1px solid rgba(255,255,255,.35);z-index:2}
+    .legendRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .legendBar{
+      height:10px;border-radius:999px;flex:1;min-width:220px;
+      background:linear-gradient(90deg,#1f2a44,#2d4f88,#4d9fff,#00d4aa,#ffc64a,#ff7438,#ff4d4d);
+      border:1px solid rgba(255,255,255,.08)
+    }
+    .tooltip{
+      position:fixed;pointer-events:none;z-index:9999;
+      background:rgba(20,22,29,.96);border:1px solid rgba(255,255,255,.10);
+      border-radius:10px;padding:10px;min-width:220px;max-width:280px;
+      box-shadow:0 10px 28px rgba(0,0,0,.4);
+      display:none;
+    }
+    .tooltip .tTitle{font-weight:900;color:#fff;font-size:12px;margin-bottom:6px}
+    .tooltip .tLine{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.5}
+    .chipSmall{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(0,212,170,.10);color:var(--teal);
+      border:1px solid rgba(0,212,170,.2);
+      border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900
+    }
+
+    /* Modal inputs (reuse style) */
+    .input{
+      width:100%;
+      background:var(--card2);
+      border:1px solid var(--border2);
+      border-radius:10px;
+      padding:10px 12px;
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    .input:focus{border-color:var(--teal)}
   </style>
 </head>
+
 <body>
   <nav>
     <div class="logo">
       <div class="logo-mark">🔧</div>
       <div class="logo-name">TUNER <span style="color:var(--teal)">PAL</span> — Prototype</div>
     </div>
+
     <div class="tabs">
       <button class="tab active" data-tab="upload">📂 Upload</button>
-      <button class="tab" data-tab="results" disabled title="Upload a log first">📊 Analysis</button>
+      <button class="tab" data-tab="results" disabled title="Upload a log first">🗺️ Map</button>
       <button class="tab" data-tab="history">🗂️ My Tunes</button>
     </div>
-    <div class="chip">
+
+    <div class="chip" id="carChip" title="Click to edit car profile">
       <div class="dot"></div>
       <div>
-        <div style="font-weight:700;color:#fff;font-size:13px">Car Profile (prototype)</div>
-        <div class="mono muted" style="font-size:11px">Make/Model · Stage · Fuel</div>
+        <div style="font-weight:900;color:#fff;font-size:13px" id="carTitle">BMW M3</div>
+        <div class="mono muted" style="font-size:11px" id="carSub">Stage 2 · E50</div>
       </div>
     </div>
   </nav>
@@ -85,8 +176,8 @@
     <!-- UPLOAD -->
     <section class="screen active" id="screen-upload">
       <div class="hero">
-        <h1>ANALYZE YOUR<br><span>TUNE IN SECONDS</span></h1>
-        <p>Upload a datalog CSV. This prototype parses key columns and generates a “Tuner Pal” issue report.</p>
+        <h1>UPLOAD YOUR LOG.<br><span>GET A MAP IN SECONDS.</span></h1>
+        <p>Upload a datalog CSV. This prototype detects columns, generates an AI-style report, and builds an RPM×Boost heatmap (Knock / AFR / Timing).</p>
       </div>
 
       <div class="card">
@@ -95,16 +186,16 @@
           <div style="font-weight:900;color:#fff;font-size:18px;margin-bottom:6px">DROP YOUR DATALOG</div>
           <div class="muted" style="margin-bottom:14px">Drag & drop a CSV here, or click to browse</div>
           <button class="btn" id="chooseBtn">Choose File</button>
-          <div class="mono" style="margin-top:12px;font-size:11px;color:#3b4567">
-            Supported: Any CSV with RPM + (AFR/Lambda) + (Boost/Map) + (Timing) + (Knock/KR) when available
+          <div class="mono" style="margin-top:12px;font-size:11px;color:var(--text3)">
+            Tip: Logs with RPM + Boost/MAP + AFR/Lambda + Knock + Timing make the best maps.
           </div>
           <input id="file" type="file" accept=".csv,text/csv" style="display:none" />
         </div>
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div style="font-weight:800;color:#fff;margin-bottom:8px">Quick Test (no log?)</div>
-        <div class="notice">Click to load a built-in sample log so you can see the full flow immediately.</div>
+        <div style="font-weight:900;color:#fff;margin-bottom:8px">Quick Demo</div>
+        <div class="notice">No log handy? Load a built-in sample log and explore the map + downloads.</div>
         <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn" id="loadSample">Load Sample Log</button>
           <button class="btn ghost" id="clearHistory">Clear Saved History</button>
@@ -117,17 +208,19 @@
       <div class="card">
         <div class="topbar">
           <div>
-            <div class="mono" style="color:var(--teal);font-weight:800" id="fileName">—</div>
+            <div class="mono" style="color:var(--teal);font-weight:900" id="fileName">—</div>
             <div class="muted" style="font-size:12px;margin-top:3px" id="fileMeta">—</div>
           </div>
           <div class="rightActions">
             <button class="btn ghost" id="newLog">⬅ New Log</button>
+            <button class="btn ghost" id="downloadCsv">⬇ Download Uploaded CSV</button>
             <button class="btn" id="exportJson">⬇ Export JSON Report</button>
           </div>
         </div>
       </div>
 
       <div class="row">
+        <!-- Left -->
         <div class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
             <div style="font-weight:900;color:#fff;font-size:18px">Tune Health</div>
@@ -137,28 +230,75 @@
           <div class="kpi">
             <div class="k"><div class="l">Health Score</div><div class="v" id="score">—</div></div>
             <div class="k"><div class="l">Knock Events</div><div class="v" id="knockCount">—</div></div>
-            <div class="k"><div class="l">AFR / Lambda Flags</div><div class="v" id="afrFlags">—</div></div>
+            <div class="k"><div class="l">AFR/Lambda Flags</div><div class="v" id="afrFlags">—</div></div>
             <div class="k"><div class="l">Boost Flags</div><div class="v" id="boostFlags">—</div></div>
           </div>
 
-          <div style="margin-top:14px;font-weight:900;color:#fff">AI Findings (prototype)</div>
-          <div class="issues" style="margin-top:10px" id="issues"></div>
+          <!-- Heatmap -->
+          <div class="mapWrap">
+            <div class="mapTop">
+              <div>
+                <div style="font-weight:900;color:#fff">Visual Map</div>
+                <div class="notice">Heatmap: <span class="mono">RPM (X)</span> × <span class="mono">Boost/Load (Y)</span></div>
+              </div>
+              <div class="seg" id="mapModeSeg">
+                <button data-mode="knock" class="active">⚡ Knock</button>
+                <button data-mode="afr">🌡️ AFR/Lambda</button>
+                <button data-mode="timing">⏱️ Timing</button>
+              </div>
+            </div>
 
-          <div style="margin-top:14px" class="notice">
-            Note: This is a prototype heuristic engine (rule-based). In the MVP, these findings come from your AI model using the normalized log + car context.
+            <div class="mapCard">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div class="mono muted" style="font-size:11px" id="mapSubtitle">KNOCK MAP — max knock per cell</div>
+                <div class="mono muted" style="font-size:11px" id="mapBins">—</div>
+              </div>
+
+              <div style="margin-top:10px" id="mapArea"></div>
+
+              <div class="legendRow">
+                <div class="legendBar"></div>
+                <div class="mono muted" style="font-size:11px" id="legendText">Low → High</div>
+              </div>
+
+              <div class="notice" style="margin-top:10px" id="mapNote">
+                Tip: Hover cells to see exact RPM/Boost window + values. (This is a prototype heatmap.)
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;font-weight:900;color:#fff">AI Findings (prototype)</div>
+          <div class="issues" id="issues"></div>
+
+          <div class="notice" style="margin-top:12px">
+            Note: This prototype uses heuristics. In MVP, AI generates structured findings using your car profile + full log context.
           </div>
         </div>
 
+        <!-- Right -->
         <div class="card">
+          <div style="font-weight:900;color:#fff;margin-bottom:8px">Car Profile Used</div>
+          <div class="notice" id="carUsed">—</div>
+
+          <div style="height:12px"></div>
+
           <div style="font-weight:900;color:#fff;margin-bottom:8px">Detected Columns</div>
           <div class="notice" id="cols">—</div>
+
           <div style="height:12px"></div>
-          <div style="font-weight:900;color:#fff;margin-bottom:8px">Next Action</div>
+
+          <div style="font-weight:900;color:#fff;margin-bottom:8px">Missing Channels (ideal)</div>
+          <div class="notice" id="missing">Fuel pressure, trims, WGDC, commanded lambda, load</div>
+
+          <div style="height:12px"></div>
+
+          <div style="font-weight:900;color:#fff;margin-bottom:8px">Prototype “Feels Real” Features</div>
           <div class="notice">
-            If this report is useful, you’re ready to:
-            <br/>1) Add login + storage (Supabase)
-            <br/>2) Add payments (Stripe)
-            <br/>3) Replace heuristics with AI JSON output
+            ✅ Editable car profile<br>
+            ✅ RPM×Boost heatmap map<br>
+            ✅ Download uploaded CSV<br>
+            ✅ Export report JSON<br>
+            ✅ My Tunes history
           </div>
         </div>
       </div>
@@ -178,7 +318,7 @@
     <section class="screen" id="screen-history">
       <div class="card">
         <div style="font-weight:900;color:#fff;font-size:18px;margin-bottom:6px">My Tunes (prototype)</div>
-        <div class="notice">Your last 10 reports are saved locally in this browser (localStorage).</div>
+        <div class="notice">Last 10 reports saved locally in this browser. Click Open to reload maps instantly.</div>
       </div>
       <div class="card" style="margin-top:14px">
         <div class="history" id="historyList"></div>
@@ -186,8 +326,52 @@
     </section>
   </div>
 
+  <!-- Tooltip -->
+  <div class="tooltip" id="tip">
+    <div class="tTitle" id="tipTitle">—</div>
+    <div class="tLine" id="tipBody">—</div>
+  </div>
+
+  <!-- Car Modal -->
+  <div id="carModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center;padding:18px">
+    <div style="max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="font-weight:900;color:#fff;font-size:16px">Edit Car Profile</div>
+        <button class="btn ghost" id="closeCarModal">✕</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+        <div>
+          <div class="mono muted" style="font-size:11px;margin-bottom:6px">Make</div>
+          <input id="carMake" class="input" placeholder="BMW" />
+        </div>
+        <div>
+          <div class="mono muted" style="font-size:11px;margin-bottom:6px">Model</div>
+          <input id="carModel" class="input" placeholder="M3" />
+        </div>
+        <div>
+          <div class="mono muted" style="font-size:11px;margin-bottom:6px">Stage</div>
+          <input id="carStage" class="input" placeholder="Stage 2" />
+        </div>
+        <div>
+          <div class="mono muted" style="font-size:11px;margin-bottom:6px">Fuel</div>
+          <input id="carFuel" class="input" placeholder="E50" />
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+        <button class="btn ghost" id="resetCar">Reset</button>
+        <button class="btn" id="saveCar">Save</button>
+      </div>
+
+      <div class="notice" style="margin-top:10px">
+        This saves in your browser so users can “feel” the personalized experience.
+      </div>
+    </div>
+  </div>
+
 <script>
-  // ---------- Tabs ----------
+  // ---------------- Tabs ----------------
   const tabs = document.querySelectorAll(".tab");
   const screens = {
     upload: document.getElementById("screen-upload"),
@@ -197,14 +381,65 @@
   function go(tab){
     tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
     Object.keys(screens).forEach(k => screens[k].classList.toggle("active", k === tab));
+    if (tab === "history") renderHistory();
   }
   tabs.forEach(t => t.addEventListener("click", () => {
     if (t.disabled) return;
     go(t.dataset.tab);
-    if (t.dataset.tab === "history") renderHistory();
   }));
 
-  // ---------- Upload ----------
+  function enableResultsTab(){
+    const rtab = Array.from(tabs).find(t=>t.dataset.tab==="results");
+    rtab.disabled = false;
+    rtab.title = "";
+  }
+
+  // ---------------- Car Profile (localStorage) ----------------
+  const CAR_KEY = "tunerpal_car_v1";
+  const defaultCar = { make: "BMW", model: "M3", stage: "Stage 2", fuel: "E50" };
+
+  function loadCar(){
+    try { return JSON.parse(localStorage.getItem(CAR_KEY)) || defaultCar; }
+    catch { return defaultCar; }
+  }
+  function saveCar(c){
+    localStorage.setItem(CAR_KEY, JSON.stringify(c));
+    renderCarChip();
+  }
+  function renderCarChip(){
+    const c = loadCar();
+    document.getElementById("carTitle").textContent = `${c.make} ${c.model}`.trim();
+    document.getElementById("carSub").textContent = `${c.stage} · ${c.fuel}`.trim();
+    document.getElementById("carUsed").innerHTML =
+      `<span class="chipSmall">${c.make} ${c.model}</span> <span class="chipSmall">${c.stage}</span> <span class="chipSmall">${c.fuel}</span>`;
+  }
+  renderCarChip();
+
+  const carModal = document.getElementById("carModal");
+  document.getElementById("carChip").onclick = () => {
+    const c = loadCar();
+    document.getElementById("carMake").value = c.make;
+    document.getElementById("carModel").value = c.model;
+    document.getElementById("carStage").value = c.stage;
+    document.getElementById("carFuel").value = c.fuel;
+    carModal.style.display = "flex";
+  };
+  document.getElementById("closeCarModal").onclick = () => carModal.style.display = "none";
+  document.getElementById("saveCar").onclick = () => {
+    saveCar({
+      make: document.getElementById("carMake").value || "—",
+      model: document.getElementById("carModel").value || "—",
+      stage: document.getElementById("carStage").value || "—",
+      fuel: document.getElementById("carFuel").value || "—",
+    });
+    carModal.style.display = "none";
+  };
+  document.getElementById("resetCar").onclick = () => {
+    saveCar(defaultCar);
+    carModal.style.display = "none";
+  };
+
+  // ---------------- Upload ----------------
   const drop = document.getElementById("drop");
   const fileInput = document.getElementById("file");
   document.getElementById("chooseBtn").onclick = (e)=>{ e.preventDefault(); fileInput.click(); };
@@ -226,14 +461,8 @@
     fileInput.value = "";
   };
 
-  // ---------- Sample ----------
-  document.getElementById("loadSample").onclick = ()=>{
-    const csv = makeSampleCSV();
-    analyzeCSV(csv, "SAMPLE_LOG.csv");
-  };
-
-  // ---------- History ----------
-  const HISTORY_KEY = "tunerpal_history_v1";
+  // ---------------- History ----------------
+  const HISTORY_KEY = "tunerpal_history_v2";
   function loadHistory(){
     try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }
     catch { return []; }
@@ -241,13 +470,13 @@
   function saveHistory(entry){
     const h = loadHistory();
     h.unshift(entry);
-    const clipped = h.slice(0, 10);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(clipped));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0,10)));
   }
   document.getElementById("clearHistory").onclick = ()=>{
     localStorage.removeItem(HISTORY_KEY);
     alert("History cleared.");
   };
+
   function renderHistory(){
     const list = document.getElementById("historyList");
     const h = loadHistory();
@@ -261,12 +490,12 @@
       div.className = "histItem";
       div.innerHTML = `
         <div>
-          <div style="font-weight:800;color:#fff">${x.fileName}</div>
+          <div style="font-weight:900;color:#fff">${x.fileName}</div>
           <div class="mono muted" style="font-size:11px">${new Date(x.createdAt).toLocaleString()} · score ${x.report.score} · issues ${x.report.issues.length}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn ghost" data-open="${idx}">Open</button>
-          <button class="btn" data-dl="${idx}">JSON</button>
+          <button class="btn" data-json="${idx}">JSON</button>
         </div>
       `;
       list.appendChild(div);
@@ -276,77 +505,78 @@
       btn.onclick = ()=>{
         const idx = Number(btn.dataset.open);
         const entry = loadHistory()[idx];
-        hydrateResults(entry.fileName, entry.meta, entry.report, entry.previewTable, entry.detected);
+        lastUploadedFileName = entry.fileName;
+        lastUploadedCSVText = entry.rawCsv || null; // if saved
+        hydrateResults(entry.fileName, entry.meta, entry.report, entry.previewTable, entry.detected, entry.series);
         enableResultsTab();
         go("results");
       };
     });
-    list.querySelectorAll("button[data-dl]").forEach(btn=>{
+    list.querySelectorAll("button[data-json]").forEach(btn=>{
       btn.onclick = ()=>{
-        const idx = Number(btn.dataset.dl);
+        const idx = Number(btn.dataset.json);
         const entry = loadHistory()[idx];
         downloadJSON(entry.report, entry.fileName.replace(".csv","") + "_report.json");
       };
     });
   }
 
-  // ---------- Core File Handling ----------
+  // ---------------- Downloads ----------------
+  let lastUploadedFileName = null;
+  let lastUploadedCSVText = null;
+
+  document.getElementById("downloadCsv").onclick = ()=>{
+    if (!lastUploadedCSVText){
+      alert("No uploaded CSV available yet (upload a log first).");
+      return;
+    }
+    const blob = new Blob([lastUploadedCSVText], {type:"text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = lastUploadedFileName || "tunerpal_log.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  document.getElementById("exportJson").onclick = ()=>{
+    if (!currentReport) return alert("No report yet.");
+    downloadJSON(currentReport, (lastUploadedFileName || "tunerpal").replace(".csv","") + "_report.json");
+  };
+
+  function downloadJSON(obj, name){
+    const blob = new Blob([JSON.stringify(obj,null,2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ---------------- Sample Log ----------------
+  document.getElementById("loadSample").onclick = ()=>{
+    const csv = makeSampleCSV();
+    analyzeCSV(csv, "SAMPLE_LOG.csv", true);
+  };
+
+  // ---------------- Core File Handling ----------------
   async function handleFile(file){
-    if (!file.name.toLowerCase().endsWith(".csv")){
-      alert("Please upload a .csv file.");
-      return;
-    }
+    const name = file.name || "uploaded.csv";
     const text = await file.text();
-    analyzeCSV(text, file.name);
+    lastUploadedFileName = name;
+    lastUploadedCSVText = text;
+    analyzeCSV(text, name, false);
   }
 
-  function analyzeCSV(csvText, fileName){
-    const parsed = parseCSV(csvText);
-    if (!parsed.headers.length || parsed.rows.length < 5){
-      alert("Could not parse CSV (needs headers + rows).");
-      return;
-    }
-    const detected = detectColumns(parsed.headers);
-    const norm = normalizeRows(parsed.rows, detected);
-
-    const meta = {
-      rows: norm.length,
-      durationGuess: estimateDurationSeconds(norm, detected) // optional guess if time column exists
-    };
-
-    const report = generateReport(norm, detected);
-    const previewTable = buildPreviewTable(norm, detected, 20);
-
-    // save
-    saveHistory({
-      fileName,
-      createdAt: Date.now(),
-      meta,
-      detected,
-      report,
-      previewTable
-    });
-
-    hydrateResults(fileName, meta, report, previewTable, detected);
-    enableResultsTab();
-    go("results");
-  }
-
-  function enableResultsTab(){
-    const rtab = Array.from(tabs).find(t=>t.dataset.tab==="results");
-    rtab.disabled = false;
-    rtab.title = "";
-  }
-
-  // ---------- CSV Parse (simple, robust enough for prototype) ----------
+  // --------------- CSV Parse ---------------
   function parseCSV(text){
-    // Handles: commas, quotes; assumes first row is header
-    const lines = text.replace(/\r/g,"").split("\n").filter(Boolean);
-    const headers = splitCSVLine(lines[0]).map(h=>h.trim());
+    // Robust-enough parser for prototype: handles quotes and commas.
+    const lines = text.replace(/\r/g,"").split("\n").filter(l => l.trim().length);
+    if (!lines.length) return { headers: [], rows: [] };
+    const headers = splitCSVLine(lines[0]).map(h=>h.trim()).filter(Boolean);
     const rows = [];
     for (let i=1; i<lines.length; i++){
       const cols = splitCSVLine(lines[i]);
-      if (cols.length === 1 && cols[0].trim()==="") continue;
+      if (!cols.length) continue;
       const obj = {};
       headers.forEach((h, idx)=> obj[h] = (cols[idx] ?? "").trim());
       rows.push(obj);
@@ -358,7 +588,7 @@
     let cur = "", inQ = false;
     for (let i=0; i<line.length; i++){
       const ch = line[i];
-      if (ch === '"' ){
+      if (ch === '"'){
         if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
         else inQ = !inQ;
       } else if (ch === "," && !inQ){
@@ -371,7 +601,6 @@
     return out;
   }
 
-  // ---------- Column Detection ----------
   function detectColumns(headers){
     const h = headers.map(x=>x.toLowerCase());
     const find = (cands)=> {
@@ -395,54 +624,49 @@
 
   function toNum(v){
     if (v === null || v === undefined) return null;
-    const n = Number(String(v).replace(/[^\d.\-]/g,""));
+    const s = String(v).trim();
+    if (!s) return null;
+    const n = Number(s.replace(/[^\d.\-]/g,""));
     return Number.isFinite(n) ? n : null;
   }
 
   function normalizeRows(rows, detected){
-    // produce standard numeric fields; keep original row too
     return rows.map(r=>{
-      const o = { _raw:r };
-      o.rpm = detected.rpm ? toNum(r[detected.rpm]) : null;
-      o.time = detected.time ? toNum(r[detected.time]) : null;
-      o.boost = detected.boost ? toNum(r[detected.boost]) : null;
-      o.afr = detected.afr ? toNum(r[detected.afr]) : null;
-      o.knock = detected.knock ? toNum(r[detected.knock]) : null;
-      o.timing = detected.timing ? toNum(r[detected.timing]) : null;
-      o.iat = detected.iat ? toNum(r[detected.iat]) : null;
-      o.throttle = detected.throttle ? toNum(r[detected.throttle]) : null;
-      return o;
-    }).filter(x=>x.rpm !== null || x.time !== null); // keep meaningful rows
+      return {
+        rpm: detected.rpm ? toNum(r[detected.rpm]) : null,
+        time: detected.time ? toNum(r[detected.time]) : null,
+        boost: detected.boost ? toNum(r[detected.boost]) : null,
+        afr: detected.afr ? toNum(r[detected.afr]) : null,
+        knock: detected.knock ? toNum(r[detected.knock]) : null,
+        timing: detected.timing ? toNum(r[detected.timing]) : null,
+        iat: detected.iat ? toNum(r[detected.iat]) : null,
+        throttle: detected.throttle ? toNum(r[detected.throttle]) : null,
+      };
+    }).filter(x => x.rpm !== null); // require rpm for map
   }
 
-  function estimateDurationSeconds(norm, detected){
-    if (!detected.time) return null;
-    const times = norm.map(r=>r.time).filter(x=>typeof x==="number");
+  function estimateDurationSeconds(norm){
+    const times = norm.map(r=>r.time).filter(n=>Number.isFinite(n));
     if (!times.length) return null;
     return Math.max(...times) - Math.min(...times);
   }
 
-  // ---------- Report Engine (prototype heuristics) ----------
+  // ---------------- Report Engine (heuristics) ----------------
   function generateReport(norm, detected){
     const issues = [];
     let score = 100;
 
-    const rpm = norm.map(r=>r.rpm).filter(n=>Number.isFinite(n));
-    const maxRpm = rpm.length ? Math.max(...rpm) : null;
-
-    // Knock detection
+    // Knock
     let knockEvents = 0;
     if (detected.knock){
-      const k = norm.map(r=>r.knock).filter(n=>Number.isFinite(n));
-      // count events > 2.0 (rough) OR any negative timing correction interpreted as "knock"
-      knockEvents = k.filter(v=>v >= 2.0).length;
+      knockEvents = norm.filter(r => Number.isFinite(r.knock) && r.knock >= 2.0).length;
       if (knockEvents >= 3){
         score -= 18;
         issues.push({
           severity:"high",
           title:`Knock events detected (${knockEvents})`,
-          body:`This log shows multiple knock/retard events. Re-check fueling and timing at the RPM/load where it occurs.`,
-          fix:`Reduce timing in the affected region, verify fuel quality, check plugs/heat range, and confirm AFR targets under load.`
+          body:`This log shows multiple knock/retard events. Address before hard pulls.`,
+          fix:`Pull timing in the affected load/RPM, verify fuel quality, check plugs/heat range, and confirm AFR under load.`
         });
       } else if (knockEvents >= 1){
         score -= 8;
@@ -450,44 +674,42 @@
           severity:"medium",
           title:`Minor knock activity (${knockEvents})`,
           body:`A small number of knock events were detected. Could be noise or borderline timing.`,
-          fix:`Review the exact RPM/load window. If repeatable, pull 1–2° timing there and retest.`
+          fix:`Review the exact RPM/load window. If repeatable, reduce 1–2° timing there and retest.`
         });
       }
     }
 
-    // AFR/Lambda flags
+    // AFR/Lambda
     let afrFlags = 0;
     if (detected.afr){
-      const afr = norm.map(r=>r.afr).filter(n=>Number.isFinite(n));
-      // rough heuristics: AFR too lean/rich if in AFR scale; if lambda scale, typical values near 1.0
-      // We'll guess scale: if avg < 2 -> lambda; else AFR.
-      const avg = afr.reduce((a,b)=>a+b,0) / (afr.length || 1);
+      const afrVals = norm.map(r=>r.afr).filter(Number.isFinite);
+      const avg = afrVals.reduce((a,b)=>a+b,0) / (afrVals.length || 1);
       const isLambda = avg > 0 && avg < 2.5;
 
       if (isLambda){
-        const lean = afr.filter(v=>v > 1.08).length;
-        const rich = afr.filter(v=>v < 0.78).length;
+        const lean = afrVals.filter(v=>v > 1.08).length;
+        const rich = afrVals.filter(v=>v < 0.78).length;
         afrFlags = lean + rich;
         if (lean > 20){
           score -= 14;
           issues.push({
             severity:"high",
             title:`Lean lambda trend (>${1.08})`,
-            body:`Lambda rises above safe targets for a meaningful portion of the log.`,
-            fix:`Verify fuel pressure, injector duty, commanded lambda, and MAF scaling. Do not continue hard pulls until corrected.`
+            body:`Lambda rises above typical safe targets for a meaningful portion of the log (if under load).`,
+            fix:`Verify fuel pressure, injector duty, commanded lambda, and calibration. Avoid WOT until corrected.`
           });
         } else if (lean > 5){
           score -= 7;
           issues.push({
             severity:"medium",
             title:`Some lean spikes`,
-            body:`Short lean spikes are present. Could be transient fueling or sensor noise.`,
-            fix:`Check tip-in enrichment, sensor calibration, and repeat logging to confirm.`
+            body:`Short lean spikes are present.`,
+            fix:`Check transient fueling, sensor calibration, and repeat logging to confirm.`
           });
         }
       } else {
-        const lean = afr.filter(v=>v > 13.2).length; // rough gasoline lean under load
-        const rich = afr.filter(v=>v < 10.2).length;
+        const lean = afrVals.filter(v=>v > 13.2).length;
+        const rich = afrVals.filter(v=>v < 10.2).length;
         afrFlags = lean + rich;
         if (lean > 20){
           score -= 14;
@@ -495,7 +717,7 @@
             severity:"high",
             title:`Lean AFR trend (>13.2)`,
             body:`AFR appears lean for a meaningful portion of the log (if this was under load).`,
-            fix:`Confirm WOT AFR target, check fuel system, and verify sensor placement/reading.`
+            fix:`Confirm WOT AFR target and fuel system. Validate sensor readings.`
           });
         }
       }
@@ -504,73 +726,281 @@
     // Boost flags
     let boostFlags = 0;
     if (detected.boost){
-      const boost = norm.map(r=>r.boost).filter(n=>Number.isFinite(n));
-      if (boost.length){
-        const maxB = Math.max(...boost);
-        const minB = Math.min(...boost);
-        // very rough: flag if big oscillation
-        if ((maxB - minB) > 8){
+      const b = norm.map(r=>r.boost).filter(Number.isFinite);
+      if (b.length){
+        const swing = Math.max(...b) - Math.min(...b);
+        if (swing > 8){
           boostFlags += 1;
           score -= 6;
           issues.push({
             severity:"medium",
             title:`Boost instability`,
-            body:`Boost appears to swing significantly. This can indicate control issues or wastegate problems.`,
-            fix:`Review WGDC/boost control, check for leaks, verify wastegate hardware and boost targets.`
+            body:`Boost swings significantly across the log.`,
+            fix:`Check boost control, wastegate, leaks, and targets.`
           });
         }
       }
     }
 
-    // Timing drops
+    // Timing drops (informational)
     if (detected.timing){
-      const t = norm.map(r=>r.timing).filter(n=>Number.isFinite(n));
+      const t = norm.map(r=>r.timing).filter(Number.isFinite);
       if (t.length){
-        const maxT = Math.max(...t);
-        const minT = Math.min(...t);
-        if ((maxT - minT) > 12){
+        const range = Math.max(...t) - Math.min(...t);
+        if (range > 12){
           score -= 5;
           issues.push({
             severity:"low",
             title:`Timing variation`,
-            body:`Ignition timing varies widely. Could be normal across RPM/load, or may indicate timing pull.`,
-            fix:`Check timing vs knock/iat. If timing drops coincide with knock/IAT, address those first.`
+            body:`Timing varies widely across the log. This can be normal across load/RPM.`,
+            fix:`Correlate timing drops with knock and IAT. Fix knock/IAT first.`
           });
         }
       }
     }
 
-    // If no issues detected
     if (!issues.length){
       issues.push({
         severity:"good",
         title:"No major red flags detected",
-        body:"This log looks stable based on the columns we found. For deeper confidence, add more channels (fuel pressure, WGDC, trims).",
-        fix:"Run a consistent pull (same gear/conditions) and compare trend logs over time."
+        body:"This log looks stable based on detected channels.",
+        fix:"Repeat consistent pulls and compare logs over time."
       });
     }
 
-    // clamp score
     score = Math.max(35, Math.min(100, Math.round(score)));
-
     const tier = score >= 85 ? "green" : score >= 70 ? "yellow" : "red";
+
     return {
-      version: "prototype-v1",
+      version: "prototype-heatmap-v1",
       createdAt: new Date().toISOString(),
+      carProfile: loadCar(),
       score,
       tier,
-      summary: {
-        maxRpm,
-        knockEvents,
-        afrFlags,
-        boostFlags
-      },
+      summary: { knockEvents, afrFlags, boostFlags },
       issues
     };
   }
 
-  // ---------- UI Hydration ----------
-  function hydrateResults(fileName, meta, report, previewTable, detected){
+  // ---------------- Heatmap Engine (RPM x Boost bins) ----------------
+  function computeHeatmap(norm, mode){
+    // Determine axes
+    const rpms = norm.map(r=>r.rpm).filter(Number.isFinite);
+    const boosts = norm.map(r=>r.boost).filter(Number.isFinite);
+
+    const rpmMin = percentile(rpms, 0.02) ?? Math.min(...rpms);
+    const rpmMax = percentile(rpms, 0.98) ?? Math.max(...rpms);
+
+    // If no boost column, use throttle as "load"
+    let yVals = boosts;
+    let yLabel = "BOOST";
+    let useThrottle = false;
+
+    if (!yVals.length){
+      const thr = norm.map(r=>r.throttle).filter(Number.isFinite);
+      if (thr.length){
+        yVals = thr;
+        yLabel = "THROTTLE";
+        useThrottle = true;
+      }
+    }
+
+    const yMin = yVals.length ? (percentile(yVals, 0.02) ?? Math.min(...yVals)) : 0;
+    const yMax = yVals.length ? (percentile(yVals, 0.98) ?? Math.max(...yVals)) : 100;
+
+    const xBins = 22; // columns
+    const yBins = 14; // rows
+
+    // grid[y][x] holds aggregation
+    const grid = Array.from({length:yBins}, ()=>Array.from({length:xBins}, ()=>({
+      n:0,
+      knockMax: -Infinity,
+      afrAvg: 0,
+      timingAvg: 0,
+      afrN: 0,
+      timingN: 0,
+      rpmAvg: 0,
+      yAvg: 0
+    })));
+
+    // Determine AFR scale (lambda vs AFR)
+    let isLambda = null;
+    const afrVals = norm.map(r=>r.afr).filter(Number.isFinite);
+    if (afrVals.length){
+      const avg = afrVals.reduce((a,b)=>a+b,0)/afrVals.length;
+      isLambda = avg > 0 && avg < 2.5;
+    }
+
+    // Bin
+    for (const r of norm){
+      if (!Number.isFinite(r.rpm)) continue;
+      const y = useThrottle ? r.throttle : r.boost;
+      if (!Number.isFinite(y)) continue;
+
+      const xi = clamp(Math.floor((r.rpm - rpmMin) / (rpmMax - rpmMin + 1e-9) * xBins), 0, xBins-1);
+      const yi = clamp(Math.floor((y - yMin) / (yMax - yMin + 1e-9) * yBins), 0, yBins-1);
+
+      const cell = grid[yi][xi];
+      cell.n++;
+      cell.rpmAvg += r.rpm;
+      cell.yAvg += y;
+
+      if (Number.isFinite(r.knock)) cell.knockMax = Math.max(cell.knockMax, r.knock);
+      if (Number.isFinite(r.afr)) { cell.afrAvg += r.afr; cell.afrN++; }
+      if (Number.isFinite(r.timing)) { cell.timingAvg += r.timing; cell.timingN++; }
+    }
+
+    // Finalize aggregates + compute scalar values for coloring
+    let values = [];
+    for (let yi=0; yi<yBins; yi++){
+      for (let xi=0; xi<xBins; xi++){
+        const c = grid[yi][xi];
+        if (!c.n) continue;
+        c.rpmAvg /= c.n;
+        c.yAvg /= c.n;
+        if (c.afrN) c.afrAvg /= c.afrN;
+        if (c.timingN) c.timingAvg /= c.timingN;
+
+        const v = modeValue(c, mode, isLambda);
+        if (Number.isFinite(v)) values.push(v);
+      }
+    }
+
+    // Range for legend
+    let vMin = values.length ? percentile(values, 0.05) : 0;
+    let vMax = values.length ? percentile(values, 0.95) : 1;
+    if (vMin === vMax){ vMin -= 1; vMax += 1; }
+
+    return {
+      grid, xBins, yBins,
+      rpmMin, rpmMax,
+      yMin, yMax,
+      yLabel,
+      useThrottle,
+      isLambda,
+      vMin, vMax
+    };
+  }
+
+  function modeValue(cell, mode, isLambda){
+    if (mode === "knock"){
+      if (!Number.isFinite(cell.knockMax) || cell.knockMax === -Infinity) return NaN;
+      return cell.knockMax;
+    }
+    if (mode === "timing"){
+      if (!Number.isFinite(cell.timingAvg) || !cell.timingN) return NaN;
+      return cell.timingAvg;
+    }
+    if (mode === "afr"){
+      if (!Number.isFinite(cell.afrAvg) || !cell.afrN) return NaN;
+      // For AFR/Lambda: return "lean risk" deviation (higher = worse)
+      if (isLambda === true){
+        // target lambda ~0.82 under load (rough). risk = max(0, lambda - 1.02) * 100
+        return Math.max(0, cell.afrAvg - 1.02) * 100;
+      } else if (isLambda === false){
+        // target AFR under load ~12.0 (rough). risk = max(0, afr - 13.2)*100
+        return Math.max(0, cell.afrAvg - 13.2) * 100;
+      } else {
+        return cell.afrAvg;
+      }
+    }
+    return NaN;
+  }
+
+  // Color scale (7-stop)
+  function colorFor(value, vMin, vMax){
+    if (!Number.isFinite(value)) return "rgba(255,255,255,.04)";
+    const t = clamp((value - vMin) / (vMax - vMin + 1e-9), 0, 1);
+    // stops: deep blue -> blue -> cyan -> teal -> yellow -> orange -> red
+    const stops = [
+      [31,42,68],
+      [45,79,136],
+      [77,159,255],
+      [0,212,170],
+      [255,198,74],
+      [255,116,56],
+      [255,77,77]
+    ];
+    const p = t * (stops.length-1);
+    const i = Math.floor(p);
+    const f = p - i;
+    const a = stops[i];
+    const b = stops[Math.min(i+1, stops.length-1)];
+    const r = Math.round(a[0] + (b[0]-a[0])*f);
+    const g = Math.round(a[1] + (b[1]-a[1])*f);
+    const bl = Math.round(a[2] + (b[2]-a[2])*f);
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  // ---------------- UI Rendering ----------------
+  let currentReport = null;
+  let currentSeries = null; // stores arrays for map
+  let currentDetected = null;
+  let currentMeta = null;
+
+  function analyzeCSV(csvText, fileName, isSample){
+    const parsed = parseCSV(csvText);
+    if (!parsed.headers.length || parsed.rows.length < 5){
+      alert("Could not parse CSV (needs headers + rows).");
+      return;
+    }
+    const detected = detectColumns(parsed.headers);
+    const norm = normalizeRows(parsed.rows, detected);
+
+    if (norm.length < 20){
+      alert("Not enough RPM rows to build a map. Try a longer log.");
+      return;
+    }
+
+    const meta = {
+      rows: norm.length,
+      durationGuess: estimateDurationSeconds(norm),
+      detected
+    };
+
+    const report = generateReport(norm, detected);
+    const previewTable = buildPreviewTable(norm, 20);
+
+    // Store series arrays for better maps (not just preview)
+    const series = {
+      rpm: norm.map(r=>r.rpm).filter(Number.isFinite),
+      boost: norm.map(r=>r.boost).filter(Number.isFinite),
+      throttle: norm.map(r=>r.throttle).filter(Number.isFinite),
+      afr: norm.map(r=>r.afr).filter(Number.isFinite),
+      knock: norm.map(r=>r.knock).filter(Number.isFinite),
+      timing: norm.map(r=>r.timing).filter(Number.isFinite),
+      iat: norm.map(r=>r.iat).filter(Number.isFinite),
+      // also keep normalized rows for map engine
+      norm
+    };
+
+    // save history (store raw csv for downloads from history)
+    saveHistory({
+      fileName,
+      createdAt: Date.now(),
+      meta,
+      detected,
+      report,
+      previewTable,
+      series,
+      rawCsv: csvText
+    });
+
+    // update globals
+    currentReport = report;
+    currentSeries = series;
+    currentDetected = detected;
+    currentMeta = meta;
+
+    hydrateResults(fileName, meta, report, previewTable, detected, series);
+    enableResultsTab();
+    go("results");
+  }
+
+  function hydrateResults(fileName, meta, report, previewTable, detected, series){
+    lastUploadedFileName = fileName;
+    // lastUploadedCSVText may be null when opened from history (but we stored rawCsv in history entry -> restored there)
+
     document.getElementById("fileName").textContent = fileName;
     const dur = meta.durationGuess ? `${Math.round(meta.durationGuess)}s (est)` : "—";
     document.getElementById("fileMeta").textContent = `${meta.rows.toLocaleString()} rows · duration ${dur}`;
@@ -584,43 +1014,48 @@
     pill.className = "pill " + (report.tier === "green" ? "g" : report.tier === "red" ? "r" : "y");
     pill.textContent = report.tier === "green" ? "✅ GOOD" : report.tier === "red" ? "🛑 NEEDS ATTENTION" : "⚠️ GOOD WITH ISSUES";
 
+    // Detected columns panel
+    const lines = [];
+    const missing = [];
+    const keys = ["rpm","boost","afr","knock","timing","iat","throttle","time"];
+    const labels = {rpm:"RPM",boost:"BOOST/MAP",afr:"AFR/LAMBDA",knock:"KNOCK/KR",timing:"TIMING",iat:"IAT",throttle:"THROTTLE",time:"TIME"};
+    for (const k of keys){
+      const v = detected[k];
+      if (v) lines.push(`<div class="mono">${labels[k]}: <b style="color:#fff">${escapeHtml(v)}</b></div>`);
+      else missing.push(labels[k]);
+    }
+    document.getElementById("cols").innerHTML = lines.join("") || `<div class="notice">No columns detected (unexpected).</div>`;
+    document.getElementById("missing").textContent = missing.length ? missing.join(", ") : "None";
+
+    renderCarChip();
+
+    // Issues
     const issuesEl = document.getElementById("issues");
     issuesEl.innerHTML = "";
     report.issues.forEach(i=>{
-      const sev = i.severity === "high" ? "r" : i.severity === "medium" ? "y" : "g";
+      const sev = i.severity === "high" ? "r" : i.severity === "medium" ? "y" : i.severity === "low" ? "b" : "g";
       const div = document.createElement("div");
       div.className = "issue";
       div.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <h4>${i.title}</h4>
-          <span class="pill ${sev}">${i.severity.toUpperCase()}</span>
+          <h4>${escapeHtml(i.title)}</h4>
+          <span class="pill ${sev}">${escapeHtml(i.severity.toUpperCase())}</span>
         </div>
-        <p style="margin-top:6px">${i.body}</p>
-        <p style="margin-top:8px"><span style="color:#fff;font-weight:800">Fix:</span> ${i.fix}</p>
+        <p style="margin-top:6px">${escapeHtml(i.body)}</p>
+        <p style="margin-top:8px"><span style="color:#fff;font-weight:900">Fix:</span> ${escapeHtml(i.fix)}</p>
       `;
       issuesEl.appendChild(div);
     });
 
-    document.getElementById("cols").innerHTML = `
-      <div class="mono">
-        rpm: <b>${detected.rpm || "—"}</b><br/>
-        boost: <b>${detected.boost || "—"}</b><br/>
-        afr/lambda: <b>${detected.afr || "—"}</b><br/>
-        knock: <b>${detected.knock || "—"}</b><br/>
-        timing: <b>${detected.timing || "—"}</b><br/>
-        iat: <b>${detected.iat || "—"}</b><br/>
-        throttle: <b>${detected.throttle || "—"}</b><br/>
-        time: <b>${detected.time || "—"}</b>
-      </div>
-    `;
-
+    // Table
     renderTable(previewTable);
-    wireExport(report, fileName);
+
+    // Heatmap defaults
+    setMapMode(currentMapMode); // will render from currentSeries.norm
   }
 
-  function buildPreviewTable(norm, detected, n=20){
-    // choose columns to display
-    const cols = ["rpm","boost","afr","knock","timing","iat","throttle","time"].filter(c=>detected[c] || c==="rpm");
+  function buildPreviewTable(norm, n=20){
+    const cols = ["rpm","boost","afr","knock","timing","iat","throttle","time"];
     const rows = norm.slice(0,n).map(r=>{
       const o = {};
       cols.forEach(c=> o[c] = r[c]);
@@ -653,47 +1088,181 @@
     });
   }
 
-  function wireExport(report, fileName){
-    document.getElementById("exportJson").onclick = ()=>{
-      downloadJSON(report, fileName.replace(".csv","") + "_report.json");
-    };
+  // ---------------- Map Mode Toggle ----------------
+  let currentMapMode = "knock";
+
+  document.getElementById("mapModeSeg").addEventListener("click", (e)=>{
+    const btn = e.target.closest("button[data-mode]");
+    if (!btn) return;
+    setMapMode(btn.dataset.mode);
+  });
+
+  function setMapMode(mode){
+    currentMapMode = mode;
+    document.querySelectorAll("#mapModeSeg button").forEach(b=>{
+      b.classList.toggle("active", b.dataset.mode === mode);
+    });
+    renderHeatmap();
   }
 
-  function downloadJSON(obj, name){
-    const blob = new Blob([JSON.stringify(obj,null,2)], {type:"application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  // ---------------- Heatmap Render ----------------
+  function renderHeatmap(){
+    if (!currentSeries || !currentSeries.norm) return;
+    const norm = currentSeries.norm;
+
+    const map = computeHeatmap(norm, currentMapMode);
+
+    const subtitle = document.getElementById("mapSubtitle");
+    const legendText = document.getElementById("legendText");
+    const mapBins = document.getElementById("mapBins");
+
+    if (currentMapMode === "knock"){
+      subtitle.textContent = "KNOCK MAP — max knock per cell";
+      legendText.textContent = `${map.vMin.toFixed(1)} → ${map.vMax.toFixed(1)} (higher = worse)`;
+    } else if (currentMapMode === "afr"){
+      if (map.isLambda === true){
+        subtitle.textContent = "AFR/LAMBDA MAP — lean risk (lambda deviation)";
+        legendText.textContent = `${map.vMin.toFixed(1)} → ${map.vMax.toFixed(1)} (higher = leaner risk)`;
+      } else if (map.isLambda === false){
+        subtitle.textContent = "AFR MAP — lean risk (AFR deviation)";
+        legendText.textContent = `${map.vMin.toFixed(1)} → ${map.vMax.toFixed(1)} (higher = leaner risk)`;
+      } else {
+        subtitle.textContent = "AFR/LAMBDA MAP — value";
+        legendText.textContent = `${map.vMin.toFixed(1)} → ${map.vMax.toFixed(1)}`;
+      }
+    } else {
+      subtitle.textContent = "TIMING MAP — avg timing per cell";
+      legendText.textContent = `${map.vMin.toFixed(1)} → ${map.vMax.toFixed(1)} (degrees)`;
+    }
+
+    mapBins.textContent = `bins: ${map.xBins}×${map.yBins} · Y: ${map.yLabel} · X: RPM`;
+
+    // Build grid
+    const area = document.getElementById("mapArea");
+    area.innerHTML = "";
+
+    const grid = document.createElement("div");
+    grid.className = "mapGrid";
+    grid.style.gridTemplateColumns = `repeat(${map.xBins}, 18px)`;
+
+    // Render with Y increasing upward visually (high load at top), so iterate reversed
+    for (let y = map.yBins-1; y >= 0; y--){
+      for (let x = 0; x < map.xBins; x++){
+        const c = map.grid[y][x];
+        const v = modeValue(c, currentMapMode, map.isLambda);
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.style.background = colorFor(v, map.vMin, map.vMax);
+        cell.dataset.n = c.n;
+
+        // Tooltip data
+        const rpmLo = map.rpmMin + (x/map.xBins) * (map.rpmMax - map.rpmMin);
+        const rpmHi = map.rpmMin + ((x+1)/map.xBins) * (map.rpmMax - map.rpmMin);
+        const yLo = map.yMin + (y/map.yBins) * (map.yMax - map.yMin);
+        const yHi = map.yMin + ((y+1)/map.yBins) * (map.yMax - map.yMin);
+
+        cell.addEventListener("mousemove", (ev)=> showTip(ev, {rpmLo,rpmHi,yLo,yHi,map,c,v}));
+        cell.addEventListener("mouseleave", hideTip);
+
+        // Make empty cells visually muted
+        if (!c.n){
+          cell.style.background = "rgba(255,255,255,.04)";
+          cell.style.borderColor = "rgba(255,255,255,.05)";
+        }
+        grid.appendChild(cell);
+      }
+    }
+    area.appendChild(grid);
   }
 
-  // ---------- Sample Data ----------
+  // ---------------- Tooltip ----------------
+  const tip = document.getElementById("tip");
+  function showTip(ev, ctx){
+    const {rpmLo,rpmHi,yLo,yHi,map,c,v} = ctx;
+    const title = document.getElementById("tipTitle");
+    const body = document.getElementById("tipBody");
+
+    const yName = map.yLabel;
+    const vLabel = currentMapMode === "knock" ? "max knock" :
+                   currentMapMode === "afr" ? (map.isLambda ? "lean risk" : "lean risk") :
+                   "avg timing";
+
+    const knockStr = Number.isFinite(c.knockMax) && c.knockMax !== -Infinity ? c.knockMax.toFixed(1) : "—";
+    const afrStr = Number.isFinite(c.afrAvg) && c.afrN ? c.afrAvg.toFixed(2) : "—";
+    const timingStr = Number.isFinite(c.timingAvg) && c.timingN ? c.timingAvg.toFixed(1) : "—";
+
+    title.textContent = `RPM ${Math.round(rpmLo)}–${Math.round(rpmHi)} · ${yName} ${yLo.toFixed(1)}–${yHi.toFixed(1)}`;
+    body.innerHTML = `
+      <div class="tLine">samples: <b style="color:#fff">${c.n}</b></div>
+      <div class="tLine">${vLabel}: <b style="color:#fff">${Number.isFinite(v) ? v.toFixed(2) : "—"}</b></div>
+      <div class="tLine">knock max: <b style="color:#fff">${knockStr}</b></div>
+      <div class="tLine">afr/lambda avg: <b style="color:#fff">${afrStr}</b></div>
+      <div class="tLine">timing avg: <b style="color:#fff">${timingStr}</b></div>
+    `;
+
+    tip.style.display = "block";
+    tip.style.left = (ev.clientX + 14) + "px";
+    tip.style.top = (ev.clientY + 14) + "px";
+  }
+  function hideTip(){ tip.style.display = "none"; }
+
+  // ---------------- Utilities ----------------
+  function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+  function percentile(arr, p){
+    const a = arr.filter(Number.isFinite).slice().sort((x,y)=>x-y);
+    if (!a.length) return null;
+    const idx = (a.length - 1) * p;
+    const lo = Math.floor(idx), hi = Math.ceil(idx);
+    if (lo === hi) return a[lo];
+    const w = idx - lo;
+    return a[lo] * (1-w) + a[hi] * w;
+  }
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, (c)=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[c]));
+  }
+
+  // ---------------- Sample CSV Generator ----------------
   function makeSampleCSV(){
-    // simple synthetic log with knock + afr lean segments
     const headers = ["Time","RPM","BoostPsi","AFR","KnockRetard","TimingDeg","IAT_F","Throttle"];
     const rows = [];
     let t=0;
-    for (let i=0;i<260;i++){
+    for (let i=0;i<520;i++){
       t += 0.1;
-      const rpm = 1800 + i*18;
-      const boost = Math.max(0, -2 + (i/260)*18 + (Math.sin(i/10)*1.2));
-      const throttle = i<30 ? 25 : 85 + Math.sin(i/20)*5;
-      let afr = 14.7 - (i/260)*3.5 + Math.sin(i/14)*0.2;
-      // lean section
-      if (i>160 && i<190) afr += 1.2;
-      // knock events
+      const rpm = 1800 + i*10;              // 1800 -> 7000
+      const throttle = i<40 ? 22 : 88 + Math.sin(i/18)*5;
+
+      // Boost curve with slight oscillation + "overboost" region
+      let boost = -1 + (i/520)*20 + Math.sin(i/11)*1.0;
+      if (i>320 && i<380) boost += 2.5;
+
+      // AFR target under load, add lean patch
+      let afr = 14.7 - (i/520)*3.6 + Math.sin(i/19)*0.15;
+      if (i>340 && i<370) afr += 1.1;
+
+      // Knock events in the lean patch window
       let kr = 0;
-      if (i===175 || i===178 || i===182) kr = 3.2;
-      const timing = 12 + (i/260)*10 - (kr>0 ? 4 : 0) - (boost>15 ? 2 : 0);
-      const iat = 85 + (i/260)*25;
-      rows.push([t.toFixed(2), Math.round(rpm), boost.toFixed(2), afr.toFixed(2), kr.toFixed(1), timing.toFixed(1), iat.toFixed(0), throttle.toFixed(0)].join(","));
+      if (i===350 || i===357 || i===364) kr = 3.2;
+
+      // Timing drops on knock
+      const timing = 11 + (i/520)*12 - (kr>0 ? 4 : 0) - (boost>18 ? 2 : 0);
+
+      const iat = 85 + (i/520)*28;
+
+      rows.push([
+        t.toFixed(2),
+        Math.round(rpm),
+        boost.toFixed(2),
+        afr.toFixed(2),
+        kr.toFixed(1),
+        timing.toFixed(1),
+        iat.toFixed(0),
+        throttle.toFixed(0)
+      ].join(","));
     }
     return [headers.join(","), ...rows].join("\n");
   }
-
-  // ---------- Export last report from history (if user wants) ----------
-  // (Handled by button wiring; results are hydrated from current report.)
 </script>
 </body>
 </html>
